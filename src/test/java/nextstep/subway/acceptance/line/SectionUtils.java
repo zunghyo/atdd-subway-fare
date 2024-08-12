@@ -13,8 +13,8 @@ import org.springframework.http.MediaType;
 public class SectionUtils {
 
     public static ExtractableResponse<Response> 지하철구간_생성(Long id, Long upStationId,
-        Long downStationId, Long distance) {
-        Map<String, Object> params = createSectionParams(upStationId, downStationId, distance);
+        Long downStationId, Long distance, Long duration) {
+        Map<String, Object> params = createSectionParams(upStationId, downStationId, distance, duration);
 
         return RestAssured.given().log().all()
             .body(params)
@@ -32,20 +32,21 @@ public class SectionUtils {
     }
 
     public static ExtractableResponse<Response> 지하철구간_생성_후_검증(Long id, Long upStationId,
-        Long downStationId, Long distance) {
+        Long downStationId, Long distance, Long duration) {
         ExtractableResponse<Response> 지하철구간_생성_응답 = 지하철구간_생성(id, upStationId, downStationId,
-            distance);
+            distance, duration);
         assertThat(지하철구간_생성_응답.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
         return 지하철구간_생성_응답;
     }
 
     private static Map<String, Object> createSectionParams(Long upStationId, Long downStationId,
-        Long distance) {
+        Long distance, Long duration) {
         Map<String, Object> params = new HashMap<>();
         params.put("upStationId", upStationId);
         params.put("downStationId", downStationId);
         params.put("distance", distance);
+        params.put("duration", duration);
         return params;
     }
 

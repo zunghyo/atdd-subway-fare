@@ -42,7 +42,7 @@ public class LineSectionsTest {
         @DisplayName("첫 번째 구간을 추가한다")
         void addFirstSection() {
             // when
-            LineSection section = new LineSection(신분당선, 신사역, 논현역, 10L);
+            LineSection section = new LineSection(신분당선, 신사역, 논현역, 10L, 2L);
             lineSections.addSection(section);
 
             // then
@@ -53,8 +53,8 @@ public class LineSectionsTest {
         @DisplayName("기존 구간의 상행 종점에 새로운 구간을 추가한다")
         void addSectionToUpTerminus() {
             // when
-            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 5L));
+            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 5L, 2L));
 
             // then
             assertThat(lineSections.size()).isEqualTo(2);
@@ -65,8 +65,8 @@ public class LineSectionsTest {
         @DisplayName("기존 구간의 하행 종점에 새로운 구간을 추가한다")
         void addSectionToDownTerminus() {
             // when
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
-            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
+            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
 
             // then
             assertThat(lineSections.size()).isEqualTo(2);
@@ -77,10 +77,10 @@ public class LineSectionsTest {
         @DisplayName("이미 존재하는 구간을 추가하려고 하면 예외를 발생시킨다")
         void throwExceptionWhenAddingExistingSection() {
             // when
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
 
             // then
-            assertThatThrownBy(() -> lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 5L)))
+            assertThatThrownBy(() -> lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 5L, 2L)))
                 .isInstanceOf(SectionAlreadyExistsException.class);
         }
     }
@@ -93,8 +93,8 @@ public class LineSectionsTest {
         @DisplayName("상행 종점역을 삭제한다")
         void deleteFirstStation() {
             // given
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
-            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
+            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
 
             // when
             lineSections.deleteSection(신사역);
@@ -108,8 +108,8 @@ public class LineSectionsTest {
         @DisplayName("하행 종점역을 삭제한다")
         void deleteLastStation() {
             // given
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
-            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
+            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
 
             // when
             lineSections.deleteSection(신논현역);
@@ -123,8 +123,8 @@ public class LineSectionsTest {
         @DisplayName("중간 역을 삭제한다")
         void deleteMiddleStation() {
             // given
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
-            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
+            lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
 
             // when
             lineSections.deleteSection(논현역);
@@ -138,7 +138,7 @@ public class LineSectionsTest {
         @DisplayName("구간이 하나만 남았을 때 삭제하려고 하면 예외를 발생시킨다")
         void throwExceptionWhenDeletingLastSection() {
             // given
-            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
+            lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
 
             // when, then
             assertThatThrownBy(() -> lineSections.deleteSection(논현역))
@@ -149,9 +149,9 @@ public class LineSectionsTest {
     @Test
     @DisplayName("getStations 메서드는 모든 역을 순서대로 반환한다")
     void getStations() {
-        lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
-        lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
-        lineSections.addSection(new LineSection(신분당선, 신논현역, 강남역, 7L));
+        lineSections.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
+        lineSections.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
+        lineSections.addSection(new LineSection(신분당선, 신논현역, 강남역, 7L, 2L));
 
         // when
         List<Station> stations = lineSections.getStations();

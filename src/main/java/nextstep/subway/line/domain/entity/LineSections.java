@@ -106,7 +106,8 @@ public class LineSections {
             existingSection.getLine(),
             newLineSection.getDownStation(),
             existingSection.getDownStation(),
-            existingSection.getDistance() - newLineSection.getDistance()
+            existingSection.getDistance() - newLineSection.getDistance(),
+            existingSection.getDuration()
         );
     }
 

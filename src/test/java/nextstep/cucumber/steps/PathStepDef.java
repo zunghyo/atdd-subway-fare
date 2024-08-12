@@ -41,7 +41,8 @@ public class PathStepDef implements En {
                 Long startId = stationIds.get(line.get("시작역"));
                 Long endId = stationIds.get(line.get("종착역"));
                 Long distance = Long.parseLong(line.get("거리"));
-                Long id = 지하철노선_생성_후_ID_반환(name, color, startId, endId, distance);
+                Long duration = Long.parseLong(line.get("소요시간"));
+                Long id = 지하철노선_생성_후_ID_반환(name, color, startId, endId, distance, duration);
                 lineIds.put(name, id);
             }
         });
@@ -53,7 +54,8 @@ public class PathStepDef implements En {
                 Long startId = stationIds.get(section.get("시작역"));
                 Long endId = stationIds.get(section.get("종착역"));
                 Long distance = Long.parseLong(section.get("거리"));
-                지하철구간_생성(lineId, startId, endId, distance);
+                Long duration = Long.parseLong(section.get("소요시간"));
+                지하철구간_생성(lineId, startId, endId, distance, duration);
             });
 
         Given("{string}이 존재한다", (String stationName) -> {

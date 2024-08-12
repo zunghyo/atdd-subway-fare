@@ -32,15 +32,19 @@ public class LineSection {
     @Embedded
     private Distance distance;
 
+    @Embedded
+    private Duration duration;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "line_id")
     private Line line;
 
-    public LineSection(Line line, Station upStation, Station downStation, Long distance) {
+    public LineSection(Line line, Station upStation, Station downStation, Long distance, Long duration) {
         this.line = line;
         this.upStation = upStation;
         this.downStation = downStation;
         this.distance = new Distance(distance);
+        this.duration = new Duration(duration);
     }
 
     public boolean hasSameUpStation(Station station) {
@@ -54,6 +58,10 @@ public class LineSection {
 
     public Long getDistance() {
         return this.distance.getDistance();
+    }
+
+    public Long getDuration() {
+        return this.duration.getDuration();
     }
 
     public Distance getDiffDistance(Long other) {

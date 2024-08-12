@@ -24,7 +24,7 @@ public class LineSectionTest {
     @BeforeEach
     void setUp() {
         신분당선 = new Line("신분당선", "bg-red-600", new LineSections());
-        lineSection = new LineSection(신분당선, 신사역, 논현역, 10L);
+        lineSection = new LineSection(신분당선, 신사역, 논현역, 10L, 2L);
     }
 
     @DisplayName("LineSection 생성 테스트")
@@ -36,6 +36,7 @@ public class LineSectionTest {
         assertThat(lineSection.getUpStation()).isEqualTo(신사역);
         assertThat(lineSection.getDownStation()).isEqualTo(논현역);
         assertThat(lineSection.getDistance()).isEqualTo(10L);
+        assertThat(lineSection.getDuration()).isEqualTo(2L);
     }
 
     @DisplayName("hasSameUpStation 테스트")

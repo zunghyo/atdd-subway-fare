@@ -44,10 +44,10 @@ public class LineServiceMockTest {
         when(stationRepository.findByIdOrThrow(신논현역_id)).thenReturn(new Station("신논현역"));
         when(lineRepository.findByIdOrThrow(신분당선_id)).thenReturn(
             new Line("신분당선", "red", new LineSections()));
-        lineSectionService.saveSection(신분당선_id, new SectionRequest(신사역_id, 논현역_id, 10L));
+        lineSectionService.saveSection(신분당선_id, new SectionRequest(신사역_id, 논현역_id, 10L, 2L));
 
         // when
-        lineSectionService.saveSection(신분당선_id, new SectionRequest(논현역_id, 신논현역_id, 10L));
+        lineSectionService.saveSection(신분당선_id, new SectionRequest(논현역_id, 신논현역_id, 10L, 2L));
 
         // then
         LineResponse lineResponse = lineService.findLine(신분당선_id);

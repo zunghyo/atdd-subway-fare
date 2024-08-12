@@ -38,11 +38,11 @@ public class LineServiceTest {
         Station 논현역 = stationRepository.save(new Station("논현역"));
         Station 신논현역 = stationRepository.save(new Station("신논현역"));
         lineSectionService.saveSection(신분당선.getId(),
-            new SectionRequest(신사역.getId(), 논현역.getId(), 10L));
+            new SectionRequest(신사역.getId(), 논현역.getId(), 10L, 2L));
 
         // when
         lineSectionService.saveSection(신분당선.getId(),
-            new SectionRequest(논현역.getId(), 신논현역.getId(), 10L));
+            new SectionRequest(논현역.getId(), 신논현역.getId(), 10L, 2L));
 
         // then
         LineResponse lineResponse = lineService.findLine(신분당선.getId());

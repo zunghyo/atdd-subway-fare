@@ -14,4 +14,5 @@ public class LineRequest {
     private Long upStationId;
     private Long downStationId;
     private Long distance;
+    private Long duration;
 }

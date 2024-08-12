@@ -32,7 +32,8 @@ public class LineService {
             line,
             stationRepository.findByIdOrThrow(lineRequest.getUpStationId()),
             stationRepository.findByIdOrThrow(lineRequest.getDownStationId()),
-            lineRequest.getDistance());
+            lineRequest.getDistance(),
+            lineRequest.getDuration());
 
         line.addSection(lineSection);
 

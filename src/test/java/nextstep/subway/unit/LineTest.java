@@ -28,7 +28,7 @@ class LineTest {
     @BeforeEach
     void setUp() {
         신분당선 = new Line("신분당선", "bg-red-60", new LineSections());
-        신분당선.addSection(new LineSection(신분당선, 신사역, 논현역, 10L));
+        신분당선.addSection(new LineSection(신분당선, 신사역, 논현역, 10L, 2L));
     }
 
     @DisplayName("addSection 테스트")
@@ -39,7 +39,7 @@ class LineTest {
         @DisplayName("하행 종착역에 새로운 지하철 구간을 추가한다.")
         void addSection() {
             // when
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
 
             // then
             LineSections lineSections = 신분당선.getLineSections();
@@ -50,7 +50,7 @@ class LineTest {
         @DisplayName("상행 종착역에 새로운 지하철 구간을 추가한다.")
         void addSection1() {
             // when
-            신분당선.addSection(new LineSection(신분당선, 신논현역, 신사역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 신논현역, 신사역, 10L, 2L));
 
             // then
             LineSections lineSections = 신분당선.getLineSections();
@@ -61,10 +61,10 @@ class LineTest {
         @DisplayName("지하철 노선 가운데 새로운 지하철 구간을 추가한다.")
         void addSection2() {
             //given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 강남역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 강남역, 10L, 2L));
 
             // when
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 5L, 2L));
 
             // then
             LineSections lineSections = 신분당선.getLineSections();
@@ -75,7 +75,7 @@ class LineTest {
         @DisplayName("새로운 구간의 상행역이 노선에 등록되어 있지 않고 하행역이 상행 종착역이 아니면 InvalidDownStationException 예외가 발생한다.")
         void addSectionException1() {
             // given
-            LineSection lineSection = new LineSection(신분당선, 강남역, 논현역, 10L);
+            LineSection lineSection = new LineSection(신분당선, 강남역, 논현역, 10L, 2L);
 
             // when, then
             assertThrows(InvalidDownStationException.class, () -> {
@@ -87,7 +87,7 @@ class LineTest {
         @DisplayName("새로운 구간이 이미 등록되어 있으면 InvalidSectionLengthException 예외가 발생한다.")
         void addSectionException2() {
             // given
-            LineSection lineSection = new LineSection(신분당선, 신사역, 신논현역, 10L);
+            LineSection lineSection = new LineSection(신분당선, 신사역, 신논현역, 10L, 2L);
 
             // when, then
             assertThrows(InvalidSectionLengthException.class, () -> {
@@ -99,8 +99,8 @@ class LineTest {
         @DisplayName("상행역이 기존 상행역에 존재하고, 하행역이 기존 노선에 존재하면 InvalidDownStationException 예외가 발생한다.")
         void addSectionException3() {
             // given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 강남역, 10L));
-            LineSection lineSection = new LineSection(신분당선, 논현역, 신사역, 5L);
+            신분당선.addSection(new LineSection(신분당선, 논현역, 강남역, 10L, 2L));
+            LineSection lineSection = new LineSection(신분당선, 논현역, 신사역, 5L, 2L);
 
             // when, then
             assertThrows(InvalidDownStationException.class, () -> {
@@ -112,7 +112,7 @@ class LineTest {
         @DisplayName("상행역이 기존 상행역에 존재하고, 하행역이 기존 하행역보다 길면 InvalidSectionLengthException 예외가 발생한다.")
         void addSectionException4() {
             // given
-            LineSection lineSection = new LineSection(신분당선, 신사역, 논현역, 10L);
+            LineSection lineSection = new LineSection(신분당선, 신사역, 논현역, 10L, 2L);
 
             // when, then
             assertThrows(SectionAlreadyExistsException.class, () -> {
@@ -129,7 +129,7 @@ class LineTest {
         @DisplayName("노선에 등록된 상행 종점역을 삭제한다.")
         void removeSection() {
             // given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
 
             // when
             신분당선.deleteSection(신사역);
@@ -142,7 +142,7 @@ class LineTest {
         @DisplayName("노선에 등록된 하행 종점역을 삭제한다.")
         void removeSection2() {
             // given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
 
             // when
             신분당선.deleteSection(신논현역);
@@ -155,7 +155,7 @@ class LineTest {
         @DisplayName("노선에 등록된 중간역을 삭제한다.")
         void removeSection3() {
             // given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
 
             // when
             신분당선.deleteSection(논현역);
@@ -182,7 +182,7 @@ class LineTest {
         @DisplayName("지하철 구간의 모든역을 조회한다.")
         void getStations() {
             // given
-            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L));
+            신분당선.addSection(new LineSection(신분당선, 논현역, 신논현역, 10L, 2L));
 
             // when
             LineSections lineSections = 신분당선.getLineSections();

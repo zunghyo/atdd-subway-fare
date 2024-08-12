@@ -56,7 +56,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
     void createLine() {
         // when
         ExtractableResponse<Response> 신분당선_생성_응답 = 지하철노선_생성(신분당선, "bg-red-600", 신사역_id, 논현역_id,
-            10L);
+            10L, 2L);
         assertThat(신분당선_생성_응답.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
         //then
@@ -72,10 +72,10 @@ public class LineAcceptanceTest extends AcceptanceTest {
     void showLines() {
         //given
         ExtractableResponse<Response> 신분당선_생성_응답 = 지하철노선_생성(신분당선, "bg-red-600", 신사역_id, 논현역_id,
-            10L);
+            10L, 2L);
         assertThat(신분당선_생성_응답.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
-        ExtractableResponse<Response> 이호선_생성_응답 = 지하철노선_생성(이호선, "bg-red-600", 역삼역_id, 강남역_id, 10L);
+        ExtractableResponse<Response> 이호선_생성_응답 = 지하철노선_생성(이호선, "bg-red-600", 역삼역_id, 강남역_id, 10L, 2L);
         assertThat(이호선_생성_응답.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
         //when
@@ -93,7 +93,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
     @Test
     void showLine() {
         //given
-        Long 신분당선_id = 지하철노선_생성_후_ID_반환(신분당선, "bg-red-600", 신사역_id, 논현역_id, 10L);
+        Long 신분당선_id = 지하철노선_생성_후_ID_반환(신분당선, "bg-red-600", 신사역_id, 논현역_id, 10L, 2L);
 
         //when
         ExtractableResponse<Response> 지하철노선_조회_응답 = 지하철노선_조회(신분당선_id);
@@ -113,7 +113,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
     @Test
     void updateLine() {
         //given
-        Long 신분당선_id = 지하철노선_생성_후_ID_반환(신분당선, "bg-red-600", 신사역_id, 논현역_id, 10L);
+        Long 신분당선_id = 지하철노선_생성_후_ID_반환(신분당선, "bg-red-600", 신사역_id, 논현역_id, 10L, 2L);
 
         //when
         ExtractableResponse<Response> 지하철노선_수정_응답 = 지하철노선_수정(신분당선_id, 일호선, "bg-blue-600");
@@ -134,7 +134,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
     void deleteLine() {
         //given
         ExtractableResponse<Response> 지하철노선_생성_응답 = 지하철노선_생성_후_검증(신분당선, "bg-red-600", 신사역_id,
-            논현역_id, 10L);
+            논현역_id, 10L, 2L);
 
         //when
         ExtractableResponse<Response> 지하철노선_삭제_응답 = 지하철노선_삭제(responseToLocation(지하철노선_생성_응답));

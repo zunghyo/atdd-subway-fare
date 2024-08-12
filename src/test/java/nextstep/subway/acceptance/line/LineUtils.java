@@ -20,9 +20,9 @@ public class LineUtils {
     public static final String 삼호선 = "삼호선";
 
     public static ExtractableResponse<Response> 지하철노선_생성(String name, String color,
-        Long upStationId, Long downStationId, Long distance) {
+        Long upStationId, Long downStationId, Long distance, Long duration) {
         Map<String, Object> params = createParams(name, color, upStationId, downStationId,
-            distance);
+            distance, duration);
 
         ExtractableResponse<Response> response =
             RestAssured.given().log().all()
@@ -36,17 +36,17 @@ public class LineUtils {
     }
 
     public static ExtractableResponse<Response> 지하철노선_생성_후_검증(String name, String color,
-        Long upStationId, Long downStationId, Long distance) {
+        Long upStationId, Long downStationId, Long distance, Long duration) {
         ExtractableResponse<Response> 지하철노선_생성_응답 = 지하철노선_생성(name, color, upStationId,
-            downStationId, distance);
+            downStationId, distance, duration);
         assertThat(지하철노선_생성_응답.statusCode()).isEqualTo(HttpStatus.CREATED.value());
 
         return 지하철노선_생성_응답;
     }
 
     public static Long 지하철노선_생성_후_ID_반환(String name, String color, Long upStationId,
-        Long downStationId, Long distance) {
-        return responseToId(지하철노선_생성_후_검증(name, color, upStationId, downStationId, distance));
+        Long downStationId, Long distance, Long duration) {
+        return responseToId(지하철노선_생성_후_검증(name, color, upStationId, downStationId, distance, duration));
     }
 
     public static ExtractableResponse<Response> 지하철노선_목록조회() {
@@ -86,13 +86,14 @@ public class LineUtils {
     }
 
     private static Map<String, Object> createParams(String name, String color, Long upStationId,
-        Long downStationId, Long distance) {
+        Long downStationId, Long distance, Long duration) {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("color", color);
         params.put("upStationId", upStationId);
         params.put("downStationId", downStationId);
         params.put("distance", distance);
+        params.put("duration", duration);
         return params;
     }
 

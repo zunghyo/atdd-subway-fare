@@ -12,4 +12,5 @@ public class SectionRequest {
     private Long upStationId;
     private Long downStationId;
     private Long distance;
+    private Long duration;
 }
