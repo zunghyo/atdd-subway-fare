@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 @AllArgsConstructor
 public class PathService {
 
-    private final PathFinder pathFinder;
+    private final PathFinder shortestPathFinder;
+    private final PathFinder minimumTimePathFinder;
     private final StationRepository stationRepository;
     private final LineRepository lineRepository;
 
@@ -24,7 +25,14 @@ public class PathService {
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
 
-        return pathFinder.find(lines, source, target);
+        return shortestPathFinder.find(lines, source, target);
+    }
+
+    public PathResponse findMinimumTimePath(Long sourceId, Long targetId) {
+        Station source = stationRepository.findByIdOrThrow(sourceId);
+        Station target = stationRepository.findByIdOrThrow(targetId);
+        List<Line> lines = lineRepository.findAll();
+        return minimumTimePathFinder.find(lines, source, target);
     }
 
     public boolean existsPath(Long sourceId, Long targetId) {
@@ -33,7 +41,7 @@ public class PathService {
         List<Line> lines = lineRepository.findAll();
 
         try {
-            pathFinder.find(lines, source, target);
+            shortestPathFinder.find(lines, source, target);
             return true;
         } catch (Exception e) {
             return false;

@@ -11,6 +11,7 @@ public enum SubwayExceptionType {
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Server Error"),
     STATION_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "Entity Not Found. stationId: %s"),
     LINE_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "Entity Not Found. lineId: %s"),
+    LINE_SECTION_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "Entity Not Found. lineSectionId: %s"),
 
     INVALID_UP_STATION(HttpStatus.BAD_REQUEST.value(), "Invalid Up Station. upStationId: %s"),
     INVALID_DOWN_STATION(HttpStatus.BAD_REQUEST.value(), "Invalid Down Station. downStationId: %s"),
