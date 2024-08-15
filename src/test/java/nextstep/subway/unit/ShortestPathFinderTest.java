@@ -2,6 +2,8 @@ package nextstep.subway.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +13,7 @@ import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.line.domain.entity.LineSections;
+import nextstep.subway.path.application.FareCalculator;
 import nextstep.subway.path.application.ShortestPathFinder;
 import nextstep.subway.path.application.dto.PathResponse;
 import nextstep.subway.path.domain.PathType;
@@ -18,9 +21,18 @@ import nextstep.subway.station.domain.Station;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class ShortestPathFinderTest {
 
+    @Mock
+    private FareCalculator fareCalculator;
+
+    @InjectMocks
     private ShortestPathFinder shortestPathFinder;
 
     private Station 교대역;
@@ -31,12 +43,10 @@ class ShortestPathFinderTest {
 
     @BeforeEach
     void setUp() {
-        shortestPathFinder = new ShortestPathFinder();
-
-        교대역 = new Station("교대역");
-        강남역 = new Station("강남역");
-        양재역 = new Station("양재역");
-        남부터미널역 = new Station("남부터미널역");
+        교대역 = new Station(1L, "교대역");
+        강남역 = new Station(2L, "강남역");
+        양재역 = new Station(3L, "양재역");
+        남부터미널역 = new Station(4L, "남부터미널역");
 
         Line 이호선 = new Line("이호선", "bg-red-600", new LineSections());
         Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections());
@@ -57,7 +67,6 @@ class ShortestPathFinderTest {
         Station source = 교대역;
         Station target = 양재역;
 
-        // when
         PathResponse pathResponse = shortestPathFinder.find(lines, source, target, PathType.DISTANCE);
 
         // then
@@ -80,6 +89,23 @@ class ShortestPathFinderTest {
         assertThat(pathResponse.getStations()).extracting("name")
             .containsExactly(교대역.getName(), 강남역.getName(), 양재역.getName());
         assertThat(pathResponse.getDuration()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("유효한 출발역과 도착역이 주어지면 요금을 반환한다")
+    void it_returns_fare() {
+        // given
+        Station source = 교대역;
+        Station target = 양재역;
+        when(fareCalculator.calculateFare(12L)).thenReturn(1350L);
+
+        // when
+        PathResponse pathResponse = shortestPathFinder.find(lines, source, target, PathType.DISTANCE);
+
+        // then
+        assertThat(pathResponse.getDistance()).isEqualTo(12L);
+        assertThat(pathResponse.getFare()).isEqualTo(1350L);
+        verify(fareCalculator).calculateFare(12L);
     }
 
     @Test

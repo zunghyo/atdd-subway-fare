@@ -1,5 +1,6 @@
 package nextstep.cucumber.steps;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java8.En;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
@@ -104,12 +105,20 @@ public class PathStepDef implements En {
             assertThat(actualStations).containsExactlyElementsOf(expectedStations);
         });
 
-        Then("총 거리와 소요 시간을 함께 응답한다", () -> {
-            int expectedDistance = 20;
-            int expectedDuration = 2;
+        Then("총 거리와 소요 시간을 함께 응답한다", (DataTable dataTable) -> {
+            Map<String, String> data = dataTable.asMaps().get(0);
+            int expectedDistance = Integer.parseInt(data.get("총 거리"));
+            int expectedDuration = Integer.parseInt(data.get("소요 시간"));
 
             assertThat(response.jsonPath().getInt("distance")).isEqualTo(expectedDistance);
             assertThat(response.jsonPath().getInt("duration")).isEqualTo(expectedDuration);
+        });
+
+        Then("지하철 이용 요금도 함께 응답한다", (DataTable dataTable) -> {
+            Map<String, String> data = dataTable.asMaps().get(0);
+            int expectedFare = Integer.parseInt(data.get("fare"));
+
+            assertThat(response.jsonPath().getInt("fare")).isEqualTo(expectedFare);
         });
     }
 }

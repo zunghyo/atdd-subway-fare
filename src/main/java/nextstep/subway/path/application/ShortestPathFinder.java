@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import lombok.AllArgsConstructor;
 import nextstep.subway.common.exception.SubwayException;
 import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.entity.Line;
@@ -19,16 +20,15 @@ import org.jgrapht.graph.WeightedMultigraph;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ShortestPathFinder implements PathFinder {
 
-    private final WeightedMultigraph<Station, DefaultWeightedEdge> graph = new WeightedMultigraph<>(
-        DefaultWeightedEdge.class);
+    private final FareCalculator fareCalculator;
 
     @Override
     public PathResponse find(List<Line> lines, Station source, Station target, PathType pathType) {
 
         validateSourceAndTargetStations(source, target);
-
 
         WeightedMultigraph<Station, DefaultWeightedEdge> graph = createGraph(lines, pathType);
         GraphPath<Station, DefaultWeightedEdge> path = findShortestPath(
@@ -100,10 +100,15 @@ public class ShortestPathFinder implements PathFinder {
     }
 
     private PathResponse getPathResponse(Map<String, LineSection> sectionMap, List<Station> stations) {
+        long totalDistance = calculateTotal(sectionMap, stations, LineSection::getDistance);
+        long totalDuration = calculateTotal(sectionMap, stations, LineSection::getDuration);
+        long fare = fareCalculator.calculateFare(totalDistance);
+
         return new PathResponse(
             stations.stream().map(StationResponse::from).collect(Collectors.toList()),
-            calculateTotal(sectionMap, stations, LineSection::getDistance),
-            calculateTotal(sectionMap, stations, LineSection::getDuration)
+            totalDistance,
+            totalDuration,
+            fare
         );
     }
 
