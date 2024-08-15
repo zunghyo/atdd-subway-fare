@@ -1,6 +1,7 @@
 package nextstep.subway.path.application;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import nextstep.subway.common.exception.SubwayException;
@@ -33,7 +34,8 @@ public class ShortestPathFinder implements PathFinder {
         GraphPath<Station, DefaultWeightedEdge> path = findShortestPath(
             source, target, graph);
 
-        return getPathResponse(lines, path);
+        Map<String, LineSection> sectionMap = createSectionMap(lines);
+        return getPathResponse(sectionMap, path.getVertexList());
     }
 
     private static void validateSourceAndTargetStations(Station source, Station target) {
@@ -88,26 +90,33 @@ public class ShortestPathFinder implements PathFinder {
         }
     }
 
-    private PathResponse getPathResponse(List<Line> lines, GraphPath<Station, DefaultWeightedEdge> path) {
-        List<Station> stations = path.getVertexList();
+    private Map<String, LineSection> createSectionMap(List<Line> lines) {
+        return lines.stream()
+            .flatMap(line -> line.getLineSections().stream())
+            .collect(Collectors.toMap(
+                section -> section.getUpStation().getId() + "-" + section.getDownStation().getId(),
+                section -> section
+            ));
+    }
+
+    private PathResponse getPathResponse(Map<String, LineSection> sectionMap, List<Station> stations) {
         return new PathResponse(
             stations.stream().map(StationResponse::from).collect(Collectors.toList()),
-            calculateTotalDistance(lines, stations),
-            (long) path.getWeight()
+            calculateTotal(sectionMap, stations, LineSection::getDistance),
+            calculateTotal(sectionMap, stations, LineSection::getDuration)
         );
     }
 
-    private long calculateTotalDistance(List<Line> lines, List<Station> stations) {
+    private long calculateTotal(Map<String, LineSection> sectionMap, List<Station> stations, java.util.function.ToLongFunction<LineSection> valueExtractor) {
         return IntStream.range(0, stations.size() - 1)
-            .mapToLong(i -> findSectionBetweenStations(lines, stations.get(i), stations.get(i + 1)).getDistance())
+            .mapToLong(i -> {
+                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
+                LineSection section = sectionMap.get(key);
+                if (section == null) {
+                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
+                }
+                return valueExtractor.applyAsLong(section);
+            })
             .sum();
-    }
-
-    private LineSection findSectionBetweenStations(List<Line> lines, Station source, Station target) {
-        return lines.stream()
-            .flatMap(line -> line.getLineSections().stream())
-            .filter(section -> section.getUpStation().equals(source) && section.getDownStation().equals(target))
-            .findFirst()
-            .orElseThrow(() -> new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND));
     }
 }
