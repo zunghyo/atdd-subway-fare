@@ -42,16 +42,16 @@ class ShortestPathFinderTest {
         Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections());
         Line 삼호선 = new Line("삼호선", "bg-orange-600", new LineSections());
 
-        이호선.addSection(new LineSection(이호선, 교대역, 강남역, 10L, 2L));
-        신분당선.addSection(new LineSection(신분당선, 강남역, 양재역, 10L, 2L));
+        이호선.addSection(new LineSection(이호선, 교대역, 강남역, 10L, 1L));
+        신분당선.addSection(new LineSection(신분당선, 강남역, 양재역, 10L, 1L));
         삼호선.addSection(new LineSection(삼호선, 교대역, 남부터미널역, 2L, 2L));
-        삼호선.addSection(new LineSection(삼호선, 남부터미널역, 양재역, 10L, 2L));
+        삼호선.addSection(new LineSection(삼호선, 남부터미널역, 양재역, 10L, 1L));
 
         lines = Arrays.asList(이호선, 신분당선, 삼호선);
     }
 
     @Test
-    @DisplayName("유효한 출발역과 도착역이 주어지면 최단 경로를 반환한다")
+    @DisplayName("유효한 출발역과 도착역이 주어지면 최단 거리 경로를 반환한다")
     void it_returns_shortest_path() {
         // given
         Station source = 교대역;
@@ -64,6 +64,22 @@ class ShortestPathFinderTest {
         assertThat(pathResponse.getStations()).extracting("name")
             .containsExactly(교대역.getName(), 남부터미널역.getName(), 양재역.getName());
         assertThat(pathResponse.getDistance()).isEqualTo(12L);
+    }
+
+    @Test
+    @DisplayName("유효한 출발역과 도착역이 주어지면 최단 시간 경로를 반환한다")
+    void it_returns_shortest_duration_path() {
+        // given
+        Station source = 교대역;
+        Station target = 양재역;
+
+        // when
+        PathResponse pathResponse = shortestPathFinder.find(lines, source, target, PathType.DURATION);
+
+        // then
+        assertThat(pathResponse.getStations()).extracting("name")
+            .containsExactly(교대역.getName(), 강남역.getName(), 양재역.getName());
+        assertThat(pathResponse.getDuration()).isEqualTo(2L);
     }
 
     @Test
