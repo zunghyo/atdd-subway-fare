@@ -14,7 +14,9 @@ import nextstep.subway.favorite.domain.Favorite;
 import nextstep.subway.favorite.domain.FavoriteRepository;
 import nextstep.subway.favorite.exception.DuplicateFavoriteException;
 import nextstep.subway.favorite.exception.UnauthorizedFavoriteAccessException;
+import nextstep.subway.path.application.PathFinder;
 import nextstep.subway.path.application.PathService;
+import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
 import org.springframework.stereotype.Service;
@@ -68,9 +70,7 @@ public class FavoriteService {
     }
 
     private void validatePathExists(Long sourceId, Long targetId) {
-        if (!pathService.existsPath(sourceId, targetId)) {
-            throw new SubwayException(SubwayExceptionType.PATH_NOT_FOUND);
-        }
+        pathService.existsPath(sourceId, targetId);
     }
 
     private void validateDuplicateFavorite(Member member, Station sourceStation, Station targetStation) {

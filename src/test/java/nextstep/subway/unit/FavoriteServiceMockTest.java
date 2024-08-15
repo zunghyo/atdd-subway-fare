@@ -3,6 +3,7 @@ package nextstep.subway.unit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -110,7 +111,6 @@ class FavoriteServiceMockTest {
             when(stationRepository.findByIdOrThrow(교대역_id)).thenReturn(교대역);
             when(stationRepository.findByIdOrThrow(강남역_id)).thenReturn(강남역);
             when(memberRepository.findByEmailOrElseThrow(email)).thenReturn(member);
-            when(pathService.existsPath(교대역_id, 강남역_id)).thenReturn(true);
             when(
                 favoriteRepository.existsByMemberAndSourceStationAndTargetStation(member, 교대역, 강남역))
                 .thenReturn(false);
@@ -133,7 +133,6 @@ class FavoriteServiceMockTest {
             when(stationRepository.findByIdOrThrow(교대역_id)).thenReturn(교대역);
             when(stationRepository.findByIdOrThrow(강남역_id)).thenReturn(강남역);
             when(memberRepository.findByEmailOrElseThrow(email)).thenReturn(member);
-            when(pathService.existsPath(교대역_id, 강남역_id)).thenReturn(true);
             when(
                 favoriteRepository.existsByMemberAndSourceStationAndTargetStation(member, 교대역, 강남역))
                 .thenReturn(true);
@@ -155,7 +154,8 @@ class FavoriteServiceMockTest {
             when(stationRepository.findByIdOrThrow(disconnectedStation_id)).thenReturn(
                 disconnectedStation);
             when(memberRepository.findByEmailOrElseThrow(email)).thenReturn(member);
-            when(pathService.existsPath(교대역_id, disconnectedStation_id)).thenReturn(false);
+            doThrow(new SubwayException(SubwayExceptionType.PATH_NOT_FOUND))
+                .when(pathService).existsPath(교대역_id, disconnectedStation_id);
 
             // when, then
             assertThatThrownBy(() -> favoriteService.createFavorite(loginMember,

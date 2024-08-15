@@ -14,6 +14,7 @@ import nextstep.subway.line.domain.entity.LineSections;
 import nextstep.subway.path.application.PathFinder;
 import nextstep.subway.path.application.PathService;
 import nextstep.subway.path.application.dto.PathResponse;
+import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.application.dto.StationResponse;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
@@ -54,7 +55,10 @@ public class PathServiceMockTest {
     private Long targetId;
 
     /**
-     * 교대역    --- *2호선* ---   강남역 |                        | *3호선*                   *신분당선* | |
+     * 교대역    --- *2호선* ---   강남역
+     * |                        |
+     * *3호선*                   *신분당선*
+     * |                        |
      * 남부터미널역  --- *3호선* ---   양재
      */
 
@@ -92,10 +96,10 @@ public class PathServiceMockTest {
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, 양재역)).thenReturn(expectedPathResponse);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(expectedPathResponse);
 
         // when
-        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId);
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE);
 
         // then
         assertThat(actualPathResponse).isEqualTo(expectedPathResponse);
@@ -112,7 +116,7 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentSourceId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId))
+        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId, PathType.DISTANCE))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentSourceId));
     }
@@ -128,7 +132,7 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentTargetId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId, PathType.DISTANCE))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentTargetId));
     }
@@ -144,11 +148,11 @@ public class PathServiceMockTest {
         when(stationRepository.findByIdOrThrow(disconnectedStation_id)).thenReturn(
             disconnectedStation);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, disconnectedStation))
+        when(pathFinder.find(lines, 교대역, disconnectedStation, PathType.DISTANCE))
             .thenThrow(new PathNotFoundException());
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id, PathType.DISTANCE))
             .isInstanceOf(PathNotFoundException.class);
     }
 }

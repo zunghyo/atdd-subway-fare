@@ -1,5 +1,6 @@
 package nextstep.cucumber.steps;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java8.En;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
@@ -8,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import nextstep.subway.path.domain.PathType;
 import org.springframework.http.HttpStatus;
 
 import static nextstep.subway.acceptance.line.LineUtils.responseToStationNames;
@@ -19,8 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PathStepDef implements En {
 
-    private Map<String, Long> stationIds = new HashMap<>();
-    private Map<String, Long> lineIds = new HashMap<>();
+    private final Map<String, Long> stationIds = new HashMap<>();
+    private final Map<String, Long> lineIds = new HashMap<>();
     private ExtractableResponse<Response> response;
 
     public PathStepDef() {
@@ -56,7 +58,7 @@ public class PathStepDef implements En {
                 Long distance = Long.parseLong(section.get("거리"));
                 Long duration = Long.parseLong(section.get("소요시간"));
                 지하철구간_생성(lineId, startId, endId, distance, duration);
-            });
+        });
 
         Given("{string}이 존재한다", (String stationName) -> {
             Long id = 지하철역_생성_후_id_추출(stationName);
@@ -66,7 +68,13 @@ public class PathStepDef implements En {
         When("사용자가 {string}에서 {string}까지의 경로를 조회하면", (String start, String end) -> {
             Long startId = stationIds.getOrDefault(start, -1L);
             Long endId = stationIds.getOrDefault(end, -1L);
-            response = 지하철역_경로조회(startId, endId);
+            response = 지하철역_경로조회(startId, endId, PathType.DISTANCE);
+        });
+
+        When("사용자가 {string}에서 {string}까지의 최소 시간 기준으로 경로를 조회하면", (String start, String end) -> {
+            Long startId = stationIds.getOrDefault(start, 1L);
+            Long endId = stationIds.getOrDefault(end, 3L);
+            response = 지하철역_경로조회(startId, endId, PathType.DURATION);
         });
 
         Then("최단 경로가 다음과 같이 조회된다", (io.cucumber.datatable.DataTable dataTable) -> {
@@ -80,6 +88,37 @@ public class PathStepDef implements En {
 
         Then("예외가 발생한다", () -> {
             assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+        });
+
+        Then("최소 시간 기준 경로를 응답한다", () -> {
+            assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+            List<String> stationNames = response.jsonPath().getList("stations.name");
+            assertThat(stationNames).isNotEmpty();
+        });
+
+        Then("최소 시간 경로가 다음과 같이 조회된다", (io.cucumber.datatable.DataTable dataTable) -> {
+            List<Map<String, String>> rows = dataTable.asMaps();
+            List<String> expectedStations = rows.stream()
+                .map(row -> row.get("역명"))
+                .collect(Collectors.toList());
+            List<String> actualStations = responseToStationNames(response);
+            assertThat(actualStations).containsExactlyElementsOf(expectedStations);
+        });
+
+        Then("총 거리와 소요 시간을 함께 응답한다", (DataTable dataTable) -> {
+            Map<String, String> data = dataTable.asMaps().get(0);
+            int expectedDistance = Integer.parseInt(data.get("총 거리"));
+            int expectedDuration = Integer.parseInt(data.get("소요 시간"));
+
+            assertThat(response.jsonPath().getInt("distance")).isEqualTo(expectedDistance);
+            assertThat(response.jsonPath().getInt("duration")).isEqualTo(expectedDuration);
+        });
+
+        Then("지하철 이용 요금도 함께 응답한다", (DataTable dataTable) -> {
+            Map<String, String> data = dataTable.asMaps().get(0);
+            int expectedFare = Integer.parseInt(data.get("fare"));
+
+            assertThat(response.jsonPath().getInt("fare")).isEqualTo(expectedFare);
         });
     }
 }
