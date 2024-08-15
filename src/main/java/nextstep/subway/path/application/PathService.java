@@ -28,16 +28,11 @@ public class PathService {
         return shortestPathFinder.find(lines, source, target, pathType);
     }
 
-    public boolean existsPath(Long sourceId, Long targetId) {
+    public void existsPath(Long sourceId, Long targetId) {
         Station source = stationRepository.findByIdOrThrow(sourceId);
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
 
-        try {
-            shortestPathFinder.find(lines, source, target, PathType.DURATION);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        shortestPathFinder.find(lines, source, target, PathType.DURATION);
     }
 }

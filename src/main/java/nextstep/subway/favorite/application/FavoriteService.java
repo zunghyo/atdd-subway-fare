@@ -70,9 +70,7 @@ public class FavoriteService {
     }
 
     private void validatePathExists(Long sourceId, Long targetId) {
-        if (!pathService.existsPath(sourceId, targetId)) {
-            throw new SubwayException(SubwayExceptionType.PATH_NOT_FOUND);
-        }
+        pathService.existsPath(sourceId, targetId);
     }
 
     private void validateDuplicateFavorite(Member member, Station sourceStation, Station targetStation) {
