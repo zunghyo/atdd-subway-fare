@@ -20,9 +20,6 @@ public class PathController {
     @GetMapping
     public ResponseEntity<PathResponse> findPath(@RequestParam Long source,
         @RequestParam Long target, @RequestParam PathType type) {
-        if(type == PathType.DURATION) {
-            return ResponseEntity.ok().body(pathService.findMinimumTimePath(source, target));
-        }
-        return ResponseEntity.ok().body(pathService.findShortestPath(source, target));
+        return ResponseEntity.ok().body(pathService.findShortestPath(source, target, type));
     }
 }

@@ -13,6 +13,7 @@ import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.line.domain.entity.LineSections;
 import nextstep.subway.path.application.ShortestPathFinder;
 import nextstep.subway.path.application.dto.PathResponse;
+import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +58,7 @@ class ShortestPathFinderTest {
         Station target = 양재역;
 
         // when
-        PathResponse pathResponse = shortestPathFinder.find(lines, source, target);
+        PathResponse pathResponse = shortestPathFinder.find(lines, source, target, PathType.DISTANCE);
 
         // then
         assertThat(pathResponse.getStations()).extracting("name")
@@ -73,7 +74,7 @@ class ShortestPathFinderTest {
         Station target = 교대역;
 
         // when, then
-        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target))
+        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target, PathType.DISTANCE))
             .isInstanceOf(SubwayException.class)
             .hasMessageContaining(SubwayExceptionType.SOURCE_AND_TARGET_SAME.getMessage());
     }
@@ -86,7 +87,7 @@ class ShortestPathFinderTest {
         Station target = 양재역;
 
         // when, then
-        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target))
+        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target, PathType.DISTANCE))
             .isInstanceOf(SubwayException.class)
             .hasMessageContaining(SubwayExceptionType.PATH_NOT_FOUND.getMessage());
     }
@@ -99,7 +100,7 @@ class ShortestPathFinderTest {
         Station target = new Station("마포역");
 
         // when, then
-        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target))
+        assertThatThrownBy(() -> shortestPathFinder.find(lines, source, target, PathType.DISTANCE))
             .isInstanceOf(SubwayException.class)
             .hasMessageContaining(SubwayExceptionType.PATH_NOT_FOUND.getMessage());
     }
@@ -119,7 +120,7 @@ class ShortestPathFinderTest {
         Station target = 공덕역;
 
         // when, then
-        assertThatThrownBy(() -> shortestPathFinder.find(updatedLines, source, target))
+        assertThatThrownBy(() -> shortestPathFinder.find(updatedLines, source, target, PathType.DISTANCE))
             .isInstanceOf(SubwayException.class)
             .hasMessageContaining(SubwayExceptionType.PATH_NOT_FOUND.getMessage());
     }
