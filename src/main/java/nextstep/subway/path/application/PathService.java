@@ -37,12 +37,15 @@ public class PathService {
         List<Station> shortestPath = shortestPathFinder.find(lines, source, target, pathType);
         Map<String, LineSection> sectionMap = createSectionMap(lines);
 
+        List<StationResponse> stationResponses = shortestPath.stream().map(StationResponse::from).collect(Collectors.toList());
         long totalDistance = calculateTotal(shortestPath, sectionMap, LineSection::getDistance);
         long totalDuration = calculateTotal(shortestPath, sectionMap, LineSection::getDuration);
-        long fare = FareCalculator.calculateFare(totalDistance);
+        List<Long> additionalFares = collectAdditionalFares(shortestPath, sectionMap);
+
+        long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
 
         return new PathResponse(
-            shortestPath.stream().map(StationResponse::from).collect(Collectors.toList()),
+            stationResponses,
             totalDistance,
             totalDuration,
             fare
@@ -77,5 +80,19 @@ public class PathService {
                 return valueExtractor.applyAsLong(section);
             })
             .sum();
+    }
+
+    private List<Long> collectAdditionalFares(List<Station> stations, Map<String, LineSection> sectionMap) {
+        return IntStream.range(0, stations.size() - 1)
+            .mapToObj(i -> {
+                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
+                LineSection section = sectionMap.get(key);
+                if (section == null) {
+                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
+                }
+                return section.getLineAdditionalFare();
+            })
+            .distinct()
+            .collect(Collectors.toList());
     }
 }

@@ -1,5 +1,7 @@
 package nextstep.subway.path.domain;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.function.LongUnaryOperator;
 
 public enum FarePolicy {
@@ -36,5 +38,26 @@ public enum FarePolicy {
         return BASE_FARE.calculateFare(distance) +
             DISTANCE_BASED.calculateFare(distance) +
             LONG_DISTANCE.calculateFare(distance);
+    }
+
+    public static long calculateTotalFare(long distance, List<Long> additionalFares) {
+        long baseFare = BASE_FARE.calculateFare(distance) +
+            DISTANCE_BASED.calculateFare(distance) +
+            LONG_DISTANCE.calculateFare(distance);
+
+        long maxAdditionalFare = getMaxAdditionalFare(additionalFares);
+
+        return baseFare + maxAdditionalFare;
+    }
+
+    private static long getMaxAdditionalFare(List<Long> additionalFares) {
+        if (additionalFares == null || additionalFares.isEmpty()) {
+            return 0L;
+        }
+        return additionalFares.stream()
+            .filter(Objects::nonNull)
+            .mapToLong(Long::longValue)
+            .max()
+            .orElse(0L);
     }
 }

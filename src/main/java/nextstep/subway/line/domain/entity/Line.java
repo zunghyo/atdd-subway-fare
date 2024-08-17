@@ -50,4 +50,8 @@ public class Line {
     public void deleteSection(Station station) {
         lineSections.deleteSection(station);
     }
+
+    public Long getAdditionalFare() {
+        return additionalFare.getAdditionalFare();
+    }
 }

@@ -18,7 +18,7 @@ public class AdditionalFare {
             throw new SubwayException(SubwayExceptionType.INVALID_FARE, additionalFare.toString());
         }
 
-        this.additionalFare = this.additionalFare;
+        this.additionalFare = additionalFare;
     }
 
     public void updateAdditionalFare(Long additionalFare) {
