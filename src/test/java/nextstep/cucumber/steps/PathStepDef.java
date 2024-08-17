@@ -44,7 +44,8 @@ public class PathStepDef implements En {
                 Long endId = stationIds.get(line.get("종착역"));
                 Long distance = Long.parseLong(line.get("거리"));
                 Long duration = Long.parseLong(line.get("소요시간"));
-                Long id = 지하철노선_생성_후_ID_반환(name, color, startId, endId, distance, duration);
+                Long additionalFare = Long.parseLong(line.get("추가요금"));
+                Long id = 지하철노선_생성_후_ID_반환(name, color, startId, endId, distance, duration, additionalFare);
                 lineIds.put(name, id);
             }
         });

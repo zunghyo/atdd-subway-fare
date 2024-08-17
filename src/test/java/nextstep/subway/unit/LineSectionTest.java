@@ -23,7 +23,7 @@ public class LineSectionTest {
 
     @BeforeEach
     void setUp() {
-        신분당선 = new Line("신분당선", "bg-red-600", new LineSections());
+        신분당선 = new Line("신분당선", "bg-red-600", new LineSections(), 0L);
         lineSection = new LineSection(신분당선, 신사역, 논현역, 10L, 2L);
     }
 

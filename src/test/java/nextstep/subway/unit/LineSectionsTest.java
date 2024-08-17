@@ -27,7 +27,7 @@ public class LineSectionsTest {
     @BeforeEach
     void setUp() {
         lineSections = new LineSections();
-        신분당선 = new Line("신분당선", "bg-red-600", lineSections);
+        신분당선 = new Line("신분당선", "bg-red-600", lineSections, 0L);
         신사역 = new Station("신사역");
         논현역 = new Station("논현역");
         신논현역 = new Station("신논현역");

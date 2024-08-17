@@ -45,9 +45,9 @@ class ShortestPathFinderTest {
         양재역 = new Station(3L, "양재역");
         남부터미널역 = new Station(4L, "남부터미널역");
 
-        Line 이호선 = new Line("이호선", "bg-red-600", new LineSections());
-        Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections());
-        Line 삼호선 = new Line("삼호선", "bg-orange-600", new LineSections());
+        Line 이호선 = new Line("이호선", "bg-red-600", new LineSections(), 0L);
+        Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections(), 0L);
+        Line 삼호선 = new Line("삼호선", "bg-orange-600", new LineSections(), 0L);
 
         이호선.addSection(new LineSection(이호선, 교대역, 강남역, 10L, 1L));
         신분당선.addSection(new LineSection(신분당선, 강남역, 양재역, 10L, 1L));
@@ -131,7 +131,7 @@ class ShortestPathFinderTest {
         // given
         Station 공덕역 = new Station("공덕역");
         Station 마포역 = new Station("마포역");
-        Line 오호선 = new Line("오호선", "bg-purple-600", new LineSections());
+        Line 오호선 = new Line("오호선", "bg-purple-600", new LineSections(), 0L);
         오호선.addSection(new LineSection(오호선, 공덕역, 마포역, 5L, 2L));
         List<Line> updatedLines = new ArrayList<>(lines);
         updatedLines.add(오호선);
