@@ -1,6 +1,6 @@
 package nextstep.subway.unit;
 
-import nextstep.subway.path.application.FareCalculator;
+import nextstep.subway.path.domain.FareCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;

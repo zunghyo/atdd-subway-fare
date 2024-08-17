@@ -1,11 +1,20 @@
 package nextstep.subway.path.application;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
+import nextstep.subway.common.exception.SubwayException;
+import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
+import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.path.application.dto.PathResponse;
+import nextstep.subway.path.domain.FareCalculator;
 import nextstep.subway.path.domain.PathType;
+import nextstep.subway.station.application.dto.StationResponse;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +34,19 @@ public class PathService {
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
 
-        return shortestPathFinder.find(lines, source, target, pathType);
+        List<Station> shortestPath = shortestPathFinder.find(lines, source, target, pathType);
+        Map<String, LineSection> sectionMap = createSectionMap(lines);
+
+        long totalDistance = calculateTotal(shortestPath, sectionMap, LineSection::getDistance);
+        long totalDuration = calculateTotal(shortestPath, sectionMap, LineSection::getDuration);
+        long fare = FareCalculator.calculateFare(totalDistance);
+
+        return new PathResponse(
+            shortestPath.stream().map(StationResponse::from).collect(Collectors.toList()),
+            totalDistance,
+            totalDuration,
+            fare
+        );
     }
 
     public void existsPath(Long sourceId, Long targetId) {
@@ -34,5 +55,27 @@ public class PathService {
         List<Line> lines = lineRepository.findAll();
 
         shortestPathFinder.find(lines, source, target, PathType.DURATION);
+    }
+
+    private Map<String, LineSection> createSectionMap(List<Line> lines) {
+        return lines.stream()
+            .flatMap(line -> line.getLineSections().stream())
+            .collect(Collectors.toMap(
+                section -> section.getUpStation().getId() + "-" + section.getDownStation().getId(),
+                section -> section
+            ));
+    }
+
+    private long calculateTotal(List<Station> stations, Map<String, LineSection> sectionMap, ToLongFunction<LineSection> valueExtractor) {
+        return IntStream.range(0, stations.size() - 1)
+            .mapToLong(i -> {
+                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
+                LineSection section = sectionMap.get(key);
+                if (section == null) {
+                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
+                }
+                return valueExtractor.applyAsLong(section);
+            })
+            .sum();
     }
 }

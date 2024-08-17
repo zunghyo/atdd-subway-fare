@@ -6,7 +6,9 @@ import static org.mockito.Mockito.when;
 
 import com.jayway.jsonpath.PathNotFoundException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
@@ -15,7 +17,6 @@ import nextstep.subway.path.application.PathFinder;
 import nextstep.subway.path.application.PathService;
 import nextstep.subway.path.application.dto.PathResponse;
 import nextstep.subway.path.domain.PathType;
-import nextstep.subway.station.application.dto.StationResponse;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
 import nextstep.subway.station.exception.StationNotFoundException;
@@ -47,10 +48,6 @@ public class PathServiceMockTest {
     private Station 양재역;
     private Station 남부터미널역;
     private List<Line> lines;
-    private Long 교대역_id = 1L;
-    private Long 강남역_id = 2L;
-    private Long 양재역_id = 3L;
-    private Long 남부터미널역_id = 4L;
     private Long sourceId;
     private Long targetId;
 
@@ -64,10 +61,10 @@ public class PathServiceMockTest {
 
     @BeforeEach
     void setUp() {
-        교대역 = new Station("교대역");
-        강남역 = new Station("강남역");
-        양재역 = new Station("양재역");
-        남부터미널역 = new Station("남부터미널역");
+        교대역 = new Station(1L, "교대역");
+        강남역 = new Station(2L, "강남역");
+        양재역 = new Station(3L, "양재역");
+        남부터미널역 = new Station(4L, "남부터미널역");
 
         Line 이호선 = new Line("이호선", "bg-red-600", new LineSections());
         Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections());
@@ -80,30 +77,37 @@ public class PathServiceMockTest {
 
         lines = Arrays.asList(이호선, 신분당선, 삼호선);
 
-        sourceId = 교대역_id;
-        targetId = 양재역_id;
+        sourceId = 1L;
+        targetId = 2L;
     }
 
     @Test
     @DisplayName("유효한 출발역과 도착역 ID가 주어지면 최단 경로를 반환한다")
     void it_returns_shortest_path() {
         // given
-        PathResponse expectedPathResponse = new PathResponse(
-            Arrays.asList(new StationResponse(교대역_id, 교대역.getName()),
-                new StationResponse(남부터미널역_id, 남부터미널역.getName()),
-                new StationResponse(양재역_id, 양재역.getName())), 12L);
+        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
+        Map<String, LineSection> mockSectionMap = new HashMap<>();
+        mockSectionMap.put(교대역.getId() + "-" + 남부터미널역.getId(),
+            new LineSection(null, 교대역, 남부터미널역, 2L, 2L));
+        mockSectionMap.put(남부터미널역.getId() + "-" + 양재역.getId(),
+            new LineSection(null, 남부터미널역, 양재역, 10L, 2L));
+
+        long expectedDistance = 12L;
+        long expectedDuration = 4L;
+        long expectedFare = 1350L;
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(expectedPathResponse);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
 
         // when
         PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE);
 
         // then
-        assertThat(actualPathResponse).isEqualTo(expectedPathResponse);
-        assertThat(actualPathResponse.getDistance()).isEqualTo(expectedPathResponse.getDistance());
+        assertThat(actualPathResponse.getDistance()).isEqualTo(expectedDistance);
+        assertThat(actualPathResponse.getDuration()).isEqualTo(expectedDuration);
+        assertThat(actualPathResponse.getFare()).isEqualTo(expectedFare);
     }
 
     @Test

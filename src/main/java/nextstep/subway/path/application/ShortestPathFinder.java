@@ -1,17 +1,11 @@
 package nextstep.subway.path.application;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
 import nextstep.subway.common.exception.SubwayException;
 import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.entity.Line;
-import nextstep.subway.line.domain.entity.LineSection;
-import nextstep.subway.path.application.dto.PathResponse;
 import nextstep.subway.path.domain.PathType;
-import nextstep.subway.station.application.dto.StationResponse;
 import nextstep.subway.station.domain.Station;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
@@ -23,10 +17,8 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class ShortestPathFinder implements PathFinder {
 
-    private final FareCalculator fareCalculator;
-
     @Override
-    public PathResponse find(List<Line> lines, Station source, Station target, PathType pathType) {
+    public List<Station> find(List<Line> lines, Station source, Station target, PathType pathType) {
 
         validateSourceAndTargetStations(source, target);
 
@@ -34,11 +26,10 @@ public class ShortestPathFinder implements PathFinder {
         GraphPath<Station, DefaultWeightedEdge> path = findShortestPath(
             source, target, graph);
 
-        Map<String, LineSection> sectionMap = createSectionMap(lines);
-        return getPathResponse(sectionMap, path.getVertexList());
+        return path.getVertexList();
     }
 
-    private static void validateSourceAndTargetStations(Station source, Station target) {
+    private void validateSourceAndTargetStations(Station source, Station target) {
         if (source.equals(target)) {
             throw new SubwayException(SubwayExceptionType.SOURCE_AND_TARGET_SAME);
         }
@@ -88,40 +79,5 @@ public class ShortestPathFinder implements PathFinder {
         if (!graph.containsVertex(source) || !graph.containsVertex(target)) {
             throw new SubwayException(SubwayExceptionType.PATH_NOT_FOUND);
         }
-    }
-
-    private Map<String, LineSection> createSectionMap(List<Line> lines) {
-        return lines.stream()
-            .flatMap(line -> line.getLineSections().stream())
-            .collect(Collectors.toMap(
-                section -> section.getUpStation().getId() + "-" + section.getDownStation().getId(),
-                section -> section
-            ));
-    }
-
-    private PathResponse getPathResponse(Map<String, LineSection> sectionMap, List<Station> stations) {
-        long totalDistance = calculateTotal(sectionMap, stations, LineSection::getDistance);
-        long totalDuration = calculateTotal(sectionMap, stations, LineSection::getDuration);
-        long fare = fareCalculator.calculateFare(totalDistance);
-
-        return new PathResponse(
-            stations.stream().map(StationResponse::from).collect(Collectors.toList()),
-            totalDistance,
-            totalDuration,
-            fare
-        );
-    }
-
-    private long calculateTotal(Map<String, LineSection> sectionMap, List<Station> stations, java.util.function.ToLongFunction<LineSection> valueExtractor) {
-        return IntStream.range(0, stations.size() - 1)
-            .mapToLong(i -> {
-                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
-                LineSection section = sectionMap.get(key);
-                if (section == null) {
-                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
-                }
-                return valueExtractor.applyAsLong(section);
-            })
-            .sum();
     }
 }
