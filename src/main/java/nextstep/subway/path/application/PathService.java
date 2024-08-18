@@ -6,12 +6,16 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
+import nextstep.member.domain.LoginMember;
+import nextstep.member.domain.Member;
+import nextstep.member.domain.MemberRepository;
 import nextstep.subway.common.exception.SubwayException;
 import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.path.application.dto.PathResponse;
+import nextstep.subway.path.domain.AgeGroup;
 import nextstep.subway.path.domain.FareCalculator;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.application.dto.StationResponse;
@@ -28,8 +32,9 @@ public class PathService {
     private final PathFinder shortestPathFinder;
     private final StationRepository stationRepository;
     private final LineRepository lineRepository;
-
-    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType) {
+    private final MemberRepository memberRepository;
+    
+    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType, LoginMember loginMember) {
         Station source = stationRepository.findByIdOrThrow(sourceId);
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
@@ -44,11 +49,17 @@ public class PathService {
 
         long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
 
+        AgeGroup ageGroup = AgeGroup.ADULT;
+        if(loginMember != null) {
+            Member member = memberRepository.findByEmailOrElseThrow(loginMember.getEmail());
+            ageGroup = AgeGroup.of(member.getAge());
+        }
+
         return new PathResponse(
             stationResponses,
             totalDistance,
             totalDuration,
-            fare
+            ageGroup.applyDiscount(fare)
         );
     }
 

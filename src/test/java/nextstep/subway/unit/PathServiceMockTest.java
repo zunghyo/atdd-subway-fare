@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import nextstep.member.domain.LoginMember;
+import nextstep.member.domain.Member;
+import nextstep.member.domain.MemberRepository;
 import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
@@ -16,6 +19,7 @@ import nextstep.subway.line.domain.entity.LineSections;
 import nextstep.subway.path.application.PathFinder;
 import nextstep.subway.path.application.PathService;
 import nextstep.subway.path.application.dto.PathResponse;
+import nextstep.subway.path.domain.AgeGroup;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
@@ -40,6 +44,9 @@ public class PathServiceMockTest {
     @Mock
     private LineRepository lineRepository;
 
+    @Mock
+    private MemberRepository memberRepository;
+
     @InjectMocks
     private PathService pathService;
 
@@ -50,6 +57,11 @@ public class PathServiceMockTest {
     private List<Line> lines;
     private Long sourceId;
     private Long targetId;
+    private String email = "test@example.com";
+    private String password = "password";
+    private Member member;
+    private LoginMember loginMember;
+
 
     /**
      * 교대역    --- *2호선* ---   강남역
@@ -79,6 +91,9 @@ public class PathServiceMockTest {
 
         sourceId = 1L;
         targetId = 2L;
+
+        member = new Member(email, password, 30);
+        loginMember = new LoginMember(email);
     }
 
     @Test
@@ -86,28 +101,60 @@ public class PathServiceMockTest {
     void it_returns_shortest_path() {
         // given
         List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
-        Map<String, LineSection> mockSectionMap = new HashMap<>();
-        mockSectionMap.put(교대역.getId() + "-" + 남부터미널역.getId(),
-            new LineSection(null, 교대역, 남부터미널역, 2L, 2L));
-        mockSectionMap.put(남부터미널역.getId() + "-" + 양재역.getId(),
-            new LineSection(null, 남부터미널역, 양재역, 10L, 2L));
-
-        long expectedDistance = 12L;
-        long expectedDuration = 4L;
-        long expectedFare = 1350L;
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
         when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(member);
 
         // when
-        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE);
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
 
         // then
-        assertThat(actualPathResponse.getDistance()).isEqualTo(expectedDistance);
-        assertThat(actualPathResponse.getDuration()).isEqualTo(expectedDuration);
-        assertThat(actualPathResponse.getFare()).isEqualTo(expectedFare);
+        assertThat(actualPathResponse.getDistance()).isEqualTo(12L);
+        assertThat(actualPathResponse.getDuration()).isEqualTo(4L);
+        assertThat(actualPathResponse.getFare()).isEqualTo(1350L);
+    }
+
+    @Test
+    @DisplayName("청소년 사용자의 경우 할인된 요금이 적용된다")
+    void teenager_user_pays_discounted_fare() {
+        // given
+        Member teenagerMember = new Member(email, password, 15);
+        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
+
+        when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
+        when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
+        when(lineRepository.findAll()).thenReturn(lines);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(teenagerMember);
+
+        // when
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
+
+        // then
+        assertThat(actualPathResponse.getFare()).isEqualTo(800);
+    }
+
+    @Test
+    @DisplayName("어린이 사용자의 경우 더 많이 할인된 요금이 적용된다")
+    void child_user_pays_more_discounted_fare() {
+        // given
+        Member childMember = new Member(email, password, 10);
+        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
+
+        when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
+        when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
+        when(lineRepository.findAll()).thenReturn(lines);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(childMember);
+
+        // when
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
+
+        // then
+        assertThat(actualPathResponse.getFare()).isEqualTo(500);
     }
 
     @Test
@@ -120,7 +167,7 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentSourceId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId, PathType.DISTANCE))
+        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId, PathType.DISTANCE, loginMember))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentSourceId));
     }
@@ -136,7 +183,7 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentTargetId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId, PathType.DISTANCE))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId, PathType.DISTANCE, loginMember))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentTargetId));
     }
@@ -156,7 +203,7 @@ public class PathServiceMockTest {
             .thenThrow(new PathNotFoundException());
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id, PathType.DISTANCE))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id, PathType.DISTANCE, loginMember))
             .isInstanceOf(PathNotFoundException.class);
     }
 }
