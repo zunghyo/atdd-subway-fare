@@ -39,13 +39,12 @@ public class PathService {
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
 
-        List<Station> shortestPath = shortestPathFinder.find(lines, source, target, pathType);
-        Map<String, LineSection> sectionMap = createSectionMap(lines);
+        List<LineSection> shortestPath = shortestPathFinder.find(lines, source, target, pathType);
 
-        List<StationResponse> stationResponses = shortestPath.stream().map(StationResponse::from).collect(Collectors.toList());
-        long totalDistance = calculateTotal(shortestPath, sectionMap, LineSection::getDistance);
-        long totalDuration = calculateTotal(shortestPath, sectionMap, LineSection::getDuration);
-        List<Long> additionalFares = collectAdditionalFares(shortestPath, sectionMap);
+        List<StationResponse> stationResponses = extractStationResponses(shortestPath);
+        long totalDistance = calculateTotal(shortestPath, LineSection::getDistance);
+        long totalDuration = calculateTotal(shortestPath, LineSection::getDuration);
+        List<Long> additionalFares = collectAdditionalFares(shortestPath);
 
         long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
 
@@ -63,6 +62,18 @@ public class PathService {
         );
     }
 
+    private List<StationResponse> extractStationResponses(List<LineSection> sections) {
+        List<StationResponse> responses = sections.stream()
+            .map(section -> StationResponse.from(section.getUpStation()))
+            .collect(Collectors.toList());
+
+        if (!sections.isEmpty()) {
+            responses.add(StationResponse.from(sections.get(sections.size() - 1).getDownStation()));
+        }
+
+        return responses;
+    }
+
     public void existsPath(Long sourceId, Long targetId) {
         Station source = stationRepository.findByIdOrThrow(sourceId);
         Station target = stationRepository.findByIdOrThrow(targetId);
@@ -71,38 +82,15 @@ public class PathService {
         shortestPathFinder.find(lines, source, target, PathType.DURATION);
     }
 
-    private Map<String, LineSection> createSectionMap(List<Line> lines) {
-        return lines.stream()
-            .flatMap(line -> line.getLineSections().stream())
-            .collect(Collectors.toMap(
-                section -> section.getUpStation().getId() + "-" + section.getDownStation().getId(),
-                section -> section
-            ));
-    }
-
-    private long calculateTotal(List<Station> stations, Map<String, LineSection> sectionMap, ToLongFunction<LineSection> valueExtractor) {
-        return IntStream.range(0, stations.size() - 1)
-            .mapToLong(i -> {
-                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
-                LineSection section = sectionMap.get(key);
-                if (section == null) {
-                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
-                }
-                return valueExtractor.applyAsLong(section);
-            })
+    private long calculateTotal(List<LineSection> sections, ToLongFunction<LineSection> valueExtractor) {
+        return sections.stream()
+            .mapToLong(valueExtractor)
             .sum();
     }
 
-    private List<Long> collectAdditionalFares(List<Station> stations, Map<String, LineSection> sectionMap) {
-        return IntStream.range(0, stations.size() - 1)
-            .mapToObj(i -> {
-                String key = stations.get(i).getId() + "-" + stations.get(i + 1).getId();
-                LineSection section = sectionMap.get(key);
-                if (section == null) {
-                    throw new SubwayException(SubwayExceptionType.LINE_SECTION_NOT_FOUND);
-                }
-                return section.getLineAdditionalFare();
-            })
+    private List<Long> collectAdditionalFares(List<LineSection> sections) {
+        return sections.stream()
+            .map(LineSection::getLineAdditionalFare)
             .distinct()
             .collect(Collectors.toList());
     }

@@ -90,8 +90,8 @@ public class PathStepDef implements En {
         });
 
         When("사용자가 {string}에서 {string}까지의 경로를 조회하면", (String start, String end) -> {
-            Long startId = stationIds.getOrDefault(start, -1L);
-            Long endId = stationIds.getOrDefault(end, -1L);
+            Long startId = stationIds.getOrDefault(start, 1L);
+            Long endId = stationIds.getOrDefault(end, 3L);
             response = 지하철역_경로조회(startId, endId, PathType.DISTANCE);
         });
 

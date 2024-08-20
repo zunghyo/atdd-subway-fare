@@ -64,11 +64,11 @@ class ShortestPathFinderTest {
         Station source = 교대역;
         Station target = 양재역;
 
-        List<Station> stations = shortestPathFinder.find(lines, source, target, PathType.DISTANCE);
+        List<LineSection> sections = shortestPathFinder.find(lines, source, target, PathType.DISTANCE);
 
         // then
-        assertThat(stations).extracting("name")
-            .containsExactly(교대역.getName(), 남부터미널역.getName(), 양재역.getName());
+        List<String> stationNames = extractStationNames(sections);
+        assertThat(stationNames).containsExactly("교대역", "남부터미널역", "양재역");
     }
 
     @Test
@@ -79,11 +79,11 @@ class ShortestPathFinderTest {
         Station target = 양재역;
 
         // when
-        List<Station> stations = shortestPathFinder.find(lines, source, target, PathType.DURATION);
+        List<LineSection> sections = shortestPathFinder.find(lines, source, target, PathType.DURATION);
 
         // then
-        assertThat(stations).extracting("name")
-            .containsExactly(교대역.getName(), 강남역.getName(), 양재역.getName());
+        List<String> stationNames = extractStationNames(sections);
+        assertThat(stationNames).containsExactly("교대역", "강남역", "양재역");
     }
 
     @Test
@@ -143,5 +143,17 @@ class ShortestPathFinderTest {
         assertThatThrownBy(() -> shortestPathFinder.find(updatedLines, source, target, PathType.DISTANCE))
             .isInstanceOf(SubwayException.class)
             .hasMessageContaining(SubwayExceptionType.PATH_NOT_FOUND.getMessage());
+    }
+
+
+    private List<String> extractStationNames(List<LineSection> sections) {
+        List<String> names = new ArrayList<>();
+        if (!sections.isEmpty()) {
+            names.add(sections.get(0).getUpStation().getName());
+            for (LineSection section : sections) {
+                names.add(section.getDownStation().getName());
+            }
+        }
+        return names;
     }
 }

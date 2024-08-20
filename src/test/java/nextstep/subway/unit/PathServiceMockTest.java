@@ -55,6 +55,7 @@ public class PathServiceMockTest {
     private Station 양재역;
     private Station 남부터미널역;
     private List<Line> lines;
+    private List<LineSection> sections;
     private Long sourceId;
     private Long targetId;
     private String email = "test@example.com";
@@ -82,12 +83,18 @@ public class PathServiceMockTest {
         Line 신분당선 = new Line("신분당선", "bg-green-600", new LineSections(), 0L);
         Line 삼호선 = new Line("삼호선", "bg-orange-600", new LineSections(), 0L);
 
-        이호선.addSection(new LineSection(이호선, 교대역, 강남역, 10L, 2L));
-        신분당선.addSection(new LineSection(신분당선, 강남역, 양재역, 10L, 2L));
-        삼호선.addSection(new LineSection(삼호선, 교대역, 남부터미널역, 2L, 2L));
-        삼호선.addSection(new LineSection(삼호선, 남부터미널역, 양재역, 10L, 2L));
+        LineSection 교대역강남역 = new LineSection(이호선, 교대역, 강남역, 10L, 2L);
+        LineSection 강남역양재역 = new LineSection(신분당선, 강남역, 양재역, 10L, 2L);
+        LineSection 교대역남부터미널역 = new LineSection(삼호선, 교대역, 남부터미널역, 2L, 2L);
+        LineSection 남부터미널역양재역 = new LineSection(삼호선, 남부터미널역, 양재역, 10L, 2L);
+
+        이호선.addSection(교대역강남역);
+        신분당선.addSection(강남역양재역);
+        삼호선.addSection(교대역남부터미널역);
+        삼호선.addSection(남부터미널역양재역);
 
         lines = Arrays.asList(이호선, 신분당선, 삼호선);
+        sections = Arrays.asList(교대역남부터미널역, 남부터미널역양재역);
 
         sourceId = 1L;
         targetId = 2L;
@@ -100,12 +107,11 @@ public class PathServiceMockTest {
     @DisplayName("유효한 출발역과 도착역 ID가 주어지면 최단 경로를 반환한다")
     void it_returns_shortest_path() {
         // given
-        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
         when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(member);
 
         // when
@@ -122,12 +128,11 @@ public class PathServiceMockTest {
     void teenager_user_pays_discounted_fare() {
         // given
         Member teenagerMember = new Member(email, password, 15);
-        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
         when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(teenagerMember);
 
         // when
@@ -142,12 +147,11 @@ public class PathServiceMockTest {
     void child_user_pays_more_discounted_fare() {
         // given
         Member childMember = new Member(email, password, 10);
-        List<Station> pathStations = Arrays.asList(교대역, 남부터미널역, 양재역);
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
-        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(pathStations);
+        when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
         when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(childMember);
 
         // when
