@@ -28,7 +28,7 @@ public class PathUtils {
             .queryParam("source", sourceStationId)
             .queryParam("target", targetStationId)
             .queryParam("type", pathType)
-            .get("/paths/member")
+            .get("/paths")
             .then().log().all()
             .extract();
     }

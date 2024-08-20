@@ -1,16 +1,10 @@
 package nextstep.subway.path.application;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import lombok.AllArgsConstructor;
-import nextstep.member.domain.LoginMember;
-import nextstep.member.domain.Member;
-import nextstep.member.domain.MemberRepository;
-import nextstep.subway.common.exception.SubwayException;
-import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
@@ -32,9 +26,8 @@ public class PathService {
     private final PathFinder shortestPathFinder;
     private final StationRepository stationRepository;
     private final LineRepository lineRepository;
-    private final MemberRepository memberRepository;
-    
-    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType, LoginMember loginMember) {
+
+    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType, Optional<Integer> age) {
         Station source = stationRepository.findByIdOrThrow(sourceId);
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
@@ -48,11 +41,7 @@ public class PathService {
 
         long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
 
-        AgeGroup ageGroup = AgeGroup.DEFAULT;
-        if(loginMember != null) {
-            Member member = memberRepository.findByEmailOrElseThrow(loginMember.getEmail());
-            ageGroup = AgeGroup.of(member.getAge());
-        }
+        AgeGroup ageGroup = AgeGroup.of(age.orElse(20));
 
         return new PathResponse(
             stationResponses,

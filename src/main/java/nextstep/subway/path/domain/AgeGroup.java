@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public enum AgeGroup {
-    DEFAULT(19, 100, fare -> fare),
     TEENAGER(13, 19, fare -> {
         long discountedFare = fare - 350;
         return Math.max(discountedFare - (long)(discountedFare * 0.2), 0);
@@ -14,7 +13,8 @@ public enum AgeGroup {
     CHILD(6, 13, fare -> {
         long discountedFare = fare - 350;
         return Math.max(discountedFare - (long)(discountedFare * 0.5), 0);
-    });
+    }),
+    DEFAULT(0, 100, fare -> fare);
 
     private final int minAge;
     private final int maxAge;

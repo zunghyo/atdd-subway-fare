@@ -94,7 +94,7 @@ class FavoriteServiceMockTest {
         삼호선.addSection(new LineSection(삼호선, 남부터미널역, 양재역, 10L, 2L));
 
         member = new Member(email, password, 30);
-        loginMember = new LoginMember(email);
+        loginMember = new LoginMember(email, 20);
 
         favoriteRequest = new FavoriteRequest(교대역_id, 강남역_id);
         favorite = new Favorite(member, 교대역, 강남역);

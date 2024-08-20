@@ -1,5 +1,6 @@
 package nextstep.subway.path.web;
 
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import nextstep.auth.ui.AuthenticationPrincipal;
 import nextstep.member.domain.LoginMember;
@@ -21,14 +22,9 @@ public class PathController {
 
     @GetMapping
     public ResponseEntity<PathResponse> findPath(@RequestParam Long source,
-        @RequestParam Long target, @RequestParam PathType type) {
-        return ResponseEntity.ok().body(pathService.findShortestPath(source, target, type, null));
-    }
+        @RequestParam Long target, @RequestParam PathType type, @AuthenticationPrincipal(required = false)  LoginMember loginMember) {
 
-    @GetMapping("/member")
-    public ResponseEntity<PathResponse> findPath(@RequestParam Long source,
-        @RequestParam Long target, @RequestParam PathType type, @AuthenticationPrincipal LoginMember loginMember) {
-
-        return ResponseEntity.ok().body(pathService.findShortestPath(source, target, type, loginMember));
+        Optional<Integer> age = Optional.ofNullable(loginMember).map(LoginMember::getAge);
+        return ResponseEntity.ok().body(pathService.findShortestPath(source, target, type, age));
     }
 }

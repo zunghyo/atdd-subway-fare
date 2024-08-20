@@ -6,9 +6,8 @@ import static org.mockito.Mockito.when;
 
 import com.jayway.jsonpath.PathNotFoundException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import nextstep.member.domain.LoginMember;
 import nextstep.member.domain.Member;
 import nextstep.member.domain.MemberRepository;
@@ -19,7 +18,6 @@ import nextstep.subway.line.domain.entity.LineSections;
 import nextstep.subway.path.application.PathFinder;
 import nextstep.subway.path.application.PathService;
 import nextstep.subway.path.application.dto.PathResponse;
-import nextstep.subway.path.domain.AgeGroup;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
 import nextstep.subway.station.domain.StationRepository;
@@ -61,7 +59,7 @@ public class PathServiceMockTest {
     private String email = "test@example.com";
     private String password = "password";
     private Member member;
-    private LoginMember loginMember;
+    private LoginMember childLoginMember;
 
 
     /**
@@ -100,22 +98,21 @@ public class PathServiceMockTest {
         targetId = 2L;
 
         member = new Member(email, password, 30);
-        loginMember = new LoginMember(email);
+        childLoginMember = new LoginMember(email, 20);
     }
 
     @Test
     @DisplayName("유효한 출발역과 도착역 ID가 주어지면 최단 경로를 반환한다")
     void it_returns_shortest_path() {
         // given
-
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
         when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
-        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(member);
 
         // when
-        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE,
+            Optional.of(childLoginMember.getAge()));
 
         // then
         assertThat(actualPathResponse.getDistance()).isEqualTo(12L);
@@ -127,16 +124,16 @@ public class PathServiceMockTest {
     @DisplayName("청소년 사용자의 경우 할인된 요금이 적용된다")
     void teenager_user_pays_discounted_fare() {
         // given
-        Member teenagerMember = new Member(email, password, 15);
+        LoginMember teenagerLoginMember = new LoginMember(email, 15);
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
         when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
-        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(teenagerMember);
 
         // when
-        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE,
+            Optional.of(teenagerLoginMember.getAge()));
 
         // then
         assertThat(actualPathResponse.getFare()).isEqualTo(800);
@@ -146,16 +143,16 @@ public class PathServiceMockTest {
     @DisplayName("어린이 사용자의 경우 더 많이 할인된 요금이 적용된다")
     void child_user_pays_more_discounted_fare() {
         // given
-        Member childMember = new Member(email, password, 10);
+        LoginMember childLoginMember = new LoginMember(email, 10);
 
         when(stationRepository.findByIdOrThrow(sourceId)).thenReturn(교대역);
         when(stationRepository.findByIdOrThrow(targetId)).thenReturn(양재역);
         when(lineRepository.findAll()).thenReturn(lines);
         when(pathFinder.find(lines, 교대역, 양재역, PathType.DISTANCE)).thenReturn(sections);
-        when(memberRepository.findByEmailOrElseThrow(loginMember.getEmail())).thenReturn(childMember);
 
         // when
-        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE, loginMember);
+        PathResponse actualPathResponse = pathService.findShortestPath(sourceId, targetId, PathType.DISTANCE,
+            Optional.of(childLoginMember.getAge()));
 
         // then
         assertThat(actualPathResponse.getFare()).isEqualTo(500);
@@ -171,7 +168,8 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentSourceId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId, PathType.DISTANCE, loginMember))
+        assertThatThrownBy(() -> pathService.findShortestPath(nonExistentSourceId, targetId, PathType.DISTANCE,
+                Optional.of(childLoginMember.getAge())))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentSourceId));
     }
@@ -187,7 +185,8 @@ public class PathServiceMockTest {
             .thenThrow(new StationNotFoundException(nonExistentTargetId));
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId, PathType.DISTANCE, loginMember))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, nonExistentTargetId, PathType.DISTANCE,
+                Optional.of(childLoginMember.getAge())))
             .isInstanceOf(StationNotFoundException.class)
             .hasMessageContaining(String.valueOf(nonExistentTargetId));
     }
@@ -207,7 +206,8 @@ public class PathServiceMockTest {
             .thenThrow(new PathNotFoundException());
 
         // when, then
-        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id, PathType.DISTANCE, loginMember))
+        assertThatThrownBy(() -> pathService.findShortestPath(sourceId, disconnectedStation_id, PathType.DISTANCE,
+                Optional.of(childLoginMember.getAge())))
             .isInstanceOf(PathNotFoundException.class);
     }
 }
