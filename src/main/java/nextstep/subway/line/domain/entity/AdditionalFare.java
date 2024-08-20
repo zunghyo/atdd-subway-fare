@@ -20,11 +20,4 @@ public class AdditionalFare {
 
         this.additionalFare = additionalFare;
     }
-
-    public void updateAdditionalFare(Long additionalFare) {
-        if (additionalFare < 0) {
-            throw new SubwayException(SubwayExceptionType.INVALID_FARE, additionalFare.toString());
-        }
-        this.additionalFare = additionalFare;
-    }
 }
