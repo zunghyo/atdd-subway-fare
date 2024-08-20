@@ -49,7 +49,7 @@ public class PathService {
 
         long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
 
-        AgeGroup ageGroup = AgeGroup.ADULT;
+        AgeGroup ageGroup = AgeGroup.DEFAULT;
         if(loginMember != null) {
             Member member = memberRepository.findByEmailOrElseThrow(loginMember.getEmail());
             ageGroup = AgeGroup.of(member.getAge());
