@@ -2,7 +2,6 @@ package nextstep.subway.path.application;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import nextstep.subway.line.domain.LineRepository;
@@ -27,28 +26,31 @@ public class PathService {
     private final StationRepository stationRepository;
     private final LineRepository lineRepository;
 
-    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType, Optional<Integer> age) {
+    public PathResponse findShortestPath(Long sourceId, Long targetId, PathType pathType,
+        Optional<Integer> age) {
         Station source = stationRepository.findByIdOrThrow(sourceId);
         Station target = stationRepository.findByIdOrThrow(targetId);
         List<Line> lines = lineRepository.findAll();
 
         List<LineSection> shortestPath = shortestPathFinder.find(lines, source, target, pathType);
+        return createPathResponse(shortestPath, age);
+    }
 
-        List<StationResponse> stationResponses = extractStationResponses(shortestPath);
-        long totalDistance = calculateTotal(shortestPath, LineSection::getDistance);
-        long totalDuration = calculateTotal(shortestPath, LineSection::getDuration);
-        List<Long> additionalFares = collectAdditionalFares(shortestPath);
+    public void existsPath(Long sourceId, Long targetId) {
+        Station source = stationRepository.findByIdOrThrow(sourceId);
+        Station target = stationRepository.findByIdOrThrow(targetId);
+        List<Line> lines = lineRepository.findAll();
 
-        long fare = FareCalculator.calculateFare(totalDistance, additionalFares);
+        shortestPathFinder.find(lines, source, target, PathType.DURATION);
+    }
 
-        AgeGroup ageGroup = AgeGroup.of(age.orElse(20));
+    private PathResponse createPathResponse(List<LineSection> shortestPath, Optional<Integer> age) {
+        List<StationResponse> stations = extractStationResponses(shortestPath);
+        long totalDistance = calculateTotalDistance(shortestPath);
+        long totalDuration = calculateTotalDuration(shortestPath);
+        long fare = calculateFare(shortestPath, totalDistance, age);
 
-        return new PathResponse(
-            stationResponses,
-            totalDistance,
-            totalDuration,
-            ageGroup.applyDiscount(fare)
-        );
+        return new PathResponse(stations, totalDistance, totalDuration, fare);
     }
 
     private List<StationResponse> extractStationResponses(List<LineSection> sections) {
@@ -63,24 +65,22 @@ public class PathService {
         return responses;
     }
 
-    public void existsPath(Long sourceId, Long targetId) {
-        Station source = stationRepository.findByIdOrThrow(sourceId);
-        Station target = stationRepository.findByIdOrThrow(targetId);
-        List<Line> lines = lineRepository.findAll();
-
-        shortestPathFinder.find(lines, source, target, PathType.DURATION);
+    private long calculateTotalDistance(List<LineSection> sections) {
+        return sections.stream().mapToLong(LineSection::getDistance).sum();
     }
 
-    private long calculateTotal(List<LineSection> sections, ToLongFunction<LineSection> valueExtractor) {
-        return sections.stream()
-            .mapToLong(valueExtractor)
-            .sum();
+    private long calculateTotalDuration(List<LineSection> sections) {
+        return sections.stream().mapToLong(LineSection::getDuration).sum();
     }
 
-    private List<Long> collectAdditionalFares(List<LineSection> sections) {
-        return sections.stream()
+    private long calculateFare(List<LineSection> sections, long totalDistance,
+        Optional<Integer> age) {
+        List<Long> additionalFares = sections.stream()
             .map(LineSection::getLineAdditionalFare)
             .distinct()
             .collect(Collectors.toList());
+
+        long baseFare = FareCalculator.calculateFare(totalDistance, additionalFares);
+        return AgeGroup.of(age.orElse(20)).applyDiscount(baseFare);
     }
 }
