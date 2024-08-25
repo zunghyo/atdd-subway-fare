@@ -8,8 +8,7 @@ import nextstep.subway.line.domain.LineRepository;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.path.application.dto.PathResponse;
-import nextstep.subway.path.domain.AgeGroup;
-import nextstep.subway.path.domain.FareCalculator;
+import nextstep.subway.fare.domain.FareCalculator;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.application.dto.StationResponse;
 import nextstep.subway.station.domain.Station;
@@ -48,8 +47,7 @@ public class PathService {
         List<StationResponse> stations = extractStationResponses(shortestPath);
         long totalDistance = calculateTotalDistance(shortestPath);
         long totalDuration = calculateTotalDuration(shortestPath);
-        long fare = calculateFare(shortestPath, totalDistance, age);
-
+        long fare = FareCalculator.calculateFare(totalDistance, shortestPath, age);
         return new PathResponse(stations, totalDistance, totalDuration, fare);
     }
 
@@ -71,16 +69,5 @@ public class PathService {
 
     private long calculateTotalDuration(List<LineSection> sections) {
         return sections.stream().mapToLong(LineSection::getDuration).sum();
-    }
-
-    private long calculateFare(List<LineSection> sections, long totalDistance,
-        Optional<Integer> age) {
-        List<Long> additionalFares = sections.stream()
-            .map(LineSection::getLineAdditionalFare)
-            .distinct()
-            .collect(Collectors.toList());
-
-        long baseFare = FareCalculator.calculateFare(totalDistance, additionalFares);
-        return AgeGroup.of(age.orElse(20)).applyDiscount(baseFare);
     }
 }

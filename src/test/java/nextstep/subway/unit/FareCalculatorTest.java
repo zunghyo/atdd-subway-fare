@@ -3,8 +3,13 @@ package nextstep.subway.unit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
-import nextstep.subway.path.domain.FareCalculator;
+import nextstep.subway.fare.domain.FareCalculator;
+import nextstep.subway.line.domain.entity.Line;
+import nextstep.subway.line.domain.entity.LineSection;
+import nextstep.subway.line.domain.entity.LineSections;
+import nextstep.subway.station.domain.Station;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,8 +47,10 @@ class FareCalculatorTest {
     @ParameterizedTest
     @MethodSource("provideDistancesAndAdditionalFares")
     @DisplayName("거리와 추가 요금에 따른 총 요금 계산")
-    void calculateTotalFareWithAdditionalFares(long distance, List<Long> additionalFares, long expectedTotalFare) {
-        assertThat(FareCalculator.calculateFare(distance, additionalFares)).isEqualTo(expectedTotalFare);
+    void calculateTotalFareWithAdditionalFares(long distance, List<Long> additionalFares,
+        long expectedTotalFare) {
+        assertThat(FareCalculator.calculateFare(distance, additionalFares)).isEqualTo(
+            expectedTotalFare);
     }
 
     private static Stream<Arguments> provideDistancesAndAdditionalFares() {
@@ -56,4 +63,27 @@ class FareCalculatorTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("provideDistancesSectionsAndAges")
+    @DisplayName("거리, 구간, 나이에 따른 요금 계산")
+    void calculateFareWithDistanceSectionsAndAge(long distance, List<LineSection> sections,
+        Optional<Integer> age, long expectedFare) {
+        assertThat(FareCalculator.calculateFare(distance, sections, age)).isEqualTo(expectedFare);
+    }
+
+    private static Stream<Arguments> provideDistancesSectionsAndAges() {
+        return Stream.of(
+            Arguments.of(10, Collections.emptyList(), Optional.of(20), 1250L),
+            Arguments.of(15, createSections(500L), Optional.of(15), 1200L),
+            Arguments.of(51, createSections(1000L), Optional.of(8), 1400L),
+            Arguments.of(60, createSections(1500L), Optional.empty(), 3750L)
+        );
+    }
+
+    private static List<LineSection> createSections(Long additionalFare) {
+        Station station1 = new Station("Station1");
+        Station station2 = new Station("Station2");
+        Line line = new Line("Line1", "Red", new LineSections(), additionalFare);
+        return Collections.singletonList(new LineSection(line, station1, station2, 1L, 2L));
+    }
 }

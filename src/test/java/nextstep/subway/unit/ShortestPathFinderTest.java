@@ -11,7 +11,6 @@ import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
 import nextstep.subway.line.domain.entity.LineSections;
-import nextstep.subway.path.domain.FareCalculator;
 import nextstep.subway.path.application.ShortestPathFinder;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
@@ -20,14 +19,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ShortestPathFinderTest {
-
-    @Mock
-    private FareCalculator fareCalculator;
 
     @InjectMocks
     private ShortestPathFinder shortestPathFinder;
