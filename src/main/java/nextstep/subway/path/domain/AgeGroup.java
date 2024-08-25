@@ -14,7 +14,7 @@ public enum AgeGroup {
         long discountedFare = fare - 350;
         return Math.max(discountedFare - (long)(discountedFare * 0.5), 0);
     }),
-    DEFAULT(0, 100, fare -> fare);
+    DEFAULT(0, Integer.MAX_VALUE, fare -> fare);
 
     private final int minAge;
     private final int maxAge;
@@ -28,6 +28,6 @@ public enum AgeGroup {
         return Arrays.stream(AgeGroup.values())
             .filter(group -> age >= group.minAge && age < group.maxAge)
             .findFirst()
-            .orElse(CHILD);
+            .orElse(DEFAULT);
     }
 }
