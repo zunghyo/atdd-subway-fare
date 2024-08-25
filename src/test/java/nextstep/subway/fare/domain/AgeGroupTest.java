@@ -1,4 +1,4 @@
-package nextstep.subway.unit;
+package nextstep.subway.fare.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
