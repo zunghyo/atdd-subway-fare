@@ -7,7 +7,6 @@ import nextstep.subway.common.exception.SubwayException;
 import nextstep.subway.common.exception.SubwayExceptionType;
 import nextstep.subway.line.domain.entity.Line;
 import nextstep.subway.line.domain.entity.LineSection;
-import nextstep.subway.path.application.dto.SectionEdge;
 import nextstep.subway.path.domain.PathType;
 import nextstep.subway.station.domain.Station;
 import org.jgrapht.GraphPath;

@@ -1,4 +1,4 @@
-package nextstep.subway.path.application.dto;
+package nextstep.subway.path.application;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
