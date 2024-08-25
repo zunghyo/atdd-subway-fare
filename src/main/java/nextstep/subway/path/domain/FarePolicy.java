@@ -9,7 +9,7 @@ public enum FarePolicy {
     DISTANCE_BASED(distance -> {
         int startDistance = 10;
         int endDistance = 50;
-        if (distance <= startDistance) {
+        if (distance <= 10) {
             return 0;
         }
         long extraDistance = Math.min(distance, endDistance) - startDistance;
